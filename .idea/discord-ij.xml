@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DiscordIJSettingProjectState">
+    <option name="fileDetailFormat" value="%projectName%[%branch%] - %fileProblems% Problem" />
+    <option name="fileStateFormat" value="Dosya: %fileName%" />
+    <option name="projectDetailFormat" value="%projectProblems% Problem var" />
+    <option name="projectStateFormat" value="Proje: %projectName%" />
+  </component>
+</project>
