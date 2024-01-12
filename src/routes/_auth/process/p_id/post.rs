@@ -54,15 +54,17 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
 
-            tokio::spawn( async move {
+            tokio::spawn(async move {
                 let id = child.id();
                 println!("Killing process with id {:?}", id);
                 if let Some(id) = id {
-                    let _ = std::process::Command::new("kill")
+                    let r = std::process::Command::new("kill")
                         .arg(id.to_string())
                         .output();
+                    println!("1- Killed process with id {:?} with result {:?}", id, r);
                 }
-                let _ = child.kill().await;
+                let r = child.kill().await;
+                println!("2- Killed process with id {:?} with result {:?}", id, r);
             });
 
             Ok(Json(json!({
