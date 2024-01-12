@@ -51,3 +51,12 @@ impl ToJson for User {
         })
     }
 }
+
+impl ToJson for ProcessOwner {
+    fn to_json(&self) -> Value {
+        json!({
+            "process_id": self.process_id,
+            "user_id": self.user_id,
+        })
+    }
+}

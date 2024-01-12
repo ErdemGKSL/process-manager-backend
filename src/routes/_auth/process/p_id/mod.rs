@@ -6,6 +6,8 @@ mod get;
 mod delete;
 mod logs;
 mod post;
+mod users;
+mod git;
 
 pub fn get_router() -> Router {
     Router::new()
@@ -14,4 +16,6 @@ pub fn get_router() -> Router {
         .route("/", delete(delete::trigger))
         .route("/", post(post::trigger))
         .nest("/logs", logs::get_router())
+        .nest("/users", users::get_router())
+        .nest("/git", git::get_router())
 }
