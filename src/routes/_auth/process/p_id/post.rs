@@ -57,11 +57,13 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child.id();
                 println!("Killing process with id {:?}", id);
-                if let Some(mut stdin) = child.stdin.take() {
-                    stdin.write_all(
-                        b"\x03"
-                    ).await.unwrap();
-                }
+                // if let Some(mut stdin) = child.stdin.take() {
+                //     stdin.write_all(
+                //         b"\x03"
+                //     ).await.unwrap();
+                // }
+                let _ = child.kill().await;
+                let _ = child.start_kill();
             });
 
             Ok(Json(json!({
