@@ -1,6 +1,6 @@
 use std::process::Stdio;
 use tokio::process;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
 use axum::http::StatusCode;
@@ -57,13 +57,12 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child.id();
                 println!("Killing process with id {:?}", id);
-                // if let Some(mut stdin) = child.stdin.take() {
-                //     stdin.write_all(
-                //         b"\x03"
-                //     ).await.unwrap();
-                // }
-                let _ = child.kill().await;
-                let _ = child.start_kill();
+                let r1 = child.kill().await;
+                let r2 = child.start_kill();
+
+                println!("Childs: {:?}", childs);
+                println!("Result 1: {:?}", r1);
+                println!("Result 2: {:?}", r2);
             });
 
             Ok(Json(json!({
@@ -75,7 +74,20 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 return Err(StatusCode::CONFLICT);
             }
 
-            stop_process(&process, db).await?;
+            let mut childs = CHILDS.lock().await;
+
+            let mut child = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+                println!("Error: {:?}", e);
+                StatusCode::INTERNAL_SERVER_ERROR
+            })?;
+
+            tokio::spawn(async move {
+                let id = child.id();
+                println!("Killing process with id {:?}", id);
+                let _ = child.kill().await;
+                let _ = child.start_kill();
+            });
+
             start_process(&mut process, db).await?;
 
             Ok(Json(json!({
