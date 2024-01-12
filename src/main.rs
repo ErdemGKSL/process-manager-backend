@@ -76,7 +76,7 @@ async fn kill_childs(db: &PgPool) {
         .await;
 
     for id in &ids {
-        let r = std::process::Command::new("kill")
+        let _ = std::process::Command::new("kill")
             .arg(id.to_string())
             .output();
     }
