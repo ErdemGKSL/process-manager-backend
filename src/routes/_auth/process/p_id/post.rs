@@ -51,7 +51,13 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut child = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
-            tokio::spawn(async move {
+            tokio::spawn( async move {
+                let id = child.id();
+                if let Some(id) = id {
+                    let _ = std::process::Command::new("kill")
+                        .arg(id.to_string())
+                        .output();
+                }
                 let _ = child.kill().await;
             });
 
