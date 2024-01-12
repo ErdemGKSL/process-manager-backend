@@ -79,7 +79,6 @@ async fn kill_childs(db: &PgPool) {
         let r = std::process::Command::new("kill")
             .arg(id.to_string())
             .output();
-        println!("Killed process with id {:?} with result {:?}", id, r);
     }
 }
 pub type State = Arc<StateData>;
