@@ -63,8 +63,8 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                         .output();
                     println!("1- Killed process with id {:?} with result {:?}", id, r);
                 }
-                let r = child.kill().await;
-                println!("2- Killed process with id {:?} with result {:?}", id, r);
+                // let r = child.kill().await;
+                // println!("2- Killed process with id {:?} with result {:?}", id, r);
             });
 
             Ok(Json(json!({
