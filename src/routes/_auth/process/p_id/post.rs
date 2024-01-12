@@ -1,6 +1,6 @@
 use std::process::Stdio;
 use tokio::process;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
 use axum::http::StatusCode;
@@ -57,12 +57,9 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child.id();
                 println!("Killing process with id {:?}", id);
-                let r1 = child.kill().await;
-                let r2 = child.start_kill();
-
-                println!("Childs: {:?}", childs);
-                println!("Result 1: {:?}", r1);
-                println!("Result 2: {:?}", r2);
+                if let Some(mut stdin) = child.stdin.take() {
+                    let _ = stdin.write_all(b"").await;
+                }
             });
 
             Ok(Json(json!({
