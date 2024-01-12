@@ -1,6 +1,8 @@
 use std::process::Stdio;
 use tokio::process;
-use tokio::io::{AsyncBufReadExt, BufReader};
+use nix::sys::signal::{kill, Signal};
+use nix::unistd::Pid;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
 use axum::http::StatusCode;
@@ -8,6 +10,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::PgPool;
 use sqlx::types::chrono;
+// use std::process;
 use crate::library::cache::{CHILDS, LOGS};
 use crate::library::model::{Process, ProcessOwner, User};
 use crate::State;
@@ -57,8 +60,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child.id();
                 println!("Killing process with id {:?}", id);
-                let _ = child.start_kill();
-                let _ = child.kill().await;
+                kill(Pid::from_raw(id as _), Signal::SIGTERM).unwrap();
             });
 
             Ok(Json(json!({
