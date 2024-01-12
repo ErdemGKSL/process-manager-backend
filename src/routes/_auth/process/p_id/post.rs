@@ -94,7 +94,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .current_dir(&process.dir)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .stdin(Stdio::null())
+            .stdin(Stdio::piped())
             .spawn()
             .map_err(|_| StatusCode::FAILED_DEPENDENCY)?;
 
