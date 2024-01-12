@@ -109,6 +109,11 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::piped())
+            .kill_on_drop(true)
+            .creation_flags(
+                0x00000200 | // CREATE_NEW_PROCESS_GROUP
+                0x00000010
+            )
             .spawn()
             .map_err(|_| StatusCode::FAILED_DEPENDENCY)?;
 
