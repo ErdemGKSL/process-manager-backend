@@ -1,7 +1,5 @@
 use std::process::Stdio;
 use tokio::process;
-use nix::sys::signal::{kill, Signal};
-use nix::unistd::Pid;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
@@ -10,7 +8,6 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::PgPool;
 use sqlx::types::chrono;
-// use std::process;
 use crate::library::cache::{CHILDS, LOGS};
 use crate::library::model::{Process, ProcessOwner, User};
 use crate::State;
@@ -60,7 +57,11 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child.id();
                 println!("Killing process with id {:?}", id);
-                kill(Pid::from_raw(id as _), Signal::SIGTERM).unwrap();
+                if let Some(mut stdin) = child.stdin.take() {
+                    stdin.write_all(
+                        b"\x03"
+                    ).await.unwrap();
+                }
             });
 
             Ok(Json(json!({
