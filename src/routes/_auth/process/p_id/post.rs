@@ -4,6 +4,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
 use axum::http::StatusCode;
+use rand::random;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::PgPool;
@@ -106,10 +107,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
         command
             .args(args)
             .current_dir(&process.dir)
-            // .creation_flags(
-            //     0x00000200 | // CREATE_NEW_PROCESS_GROUP
-            //         0x00000010
-            // )
+            .process_group(random())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::piped())
