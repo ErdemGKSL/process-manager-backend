@@ -108,7 +108,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
         command
             .args(args)
             .current_dir(&process.dir)
-            .process_group(group_id as i32)
+            .gid(group_id as u32)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::null())
