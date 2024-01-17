@@ -11,7 +11,7 @@ lazy_static! {
 
 pub struct ChildProcess {
     pub child: Child,
-    pub group_id: u32
+    pub group_id: u16
 }
 
 
