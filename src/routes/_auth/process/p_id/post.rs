@@ -9,9 +9,7 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::PgPool;
 use sqlx::types::chrono;
-use rand::random;
-use tokio::process::Command;
-use crate::library::cache::{ChildProcess, CHILDS, LOGS};
+use crate::library::cache::{CHILDS, LOGS};
 use crate::library::model::{Process, ProcessOwner, User};
 use crate::State;
 
@@ -52,17 +50,18 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut childs = CHILDS.lock().await;
 
-            let child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+            let mut child = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
                 println!("Error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
 
-            let id = child_process.child.id();
-            let _ = Command::new("pkill")
-                .args(&["-g", &child_process.group_id.to_string()])
-                .spawn();
-
-            println!("Killing process with id {id:?}");
+            tokio::spawn(async move {
+                let id = child.id();
+                println!("Killing process with id {:?}", id);
+                if let Some(mut stdin) = child.stdin.take() {
+                    let _ = stdin.write_all(b"").await;
+                }
+            });
 
             Ok(Json(json!({
                 "ok": true
@@ -75,17 +74,17 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut childs = CHILDS.lock().await;
 
-            let child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+            let mut child = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
                 println!("Error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
 
-            let id = child_process.child.id();
-            let _ = Command::new("pkill")
-                .args(vec!["-g", child_process.group_id.to_string().as_str()])
-                .spawn();
-            println!("Killing process with id {id:?}");
-
+            tokio::spawn(async move {
+                let id = child.id();
+                println!("Killing process with id {:?}", id);
+                let _ = child.kill().await;
+                let _ = child.start_kill();
+            });
 
             start_process(&mut process, db).await?;
 
@@ -103,13 +102,12 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
 
     let mut command = process::Command::new(name);
 
-    let group_id: u32 = random();
 
     let mut child =
         command
             .args(args)
             .current_dir(&process.dir)
-            .gid(group_id)
+            .process_group(random())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::piped())
@@ -177,7 +175,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
                     format!("[{timestamp_string}] [Error]: {line}")
                         .chars()
                         .take(300)
-                        .collect()
+                        .collect::<String>()
                 );
 
                 if log.len() > 200 {
@@ -195,10 +193,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
     process.process_id = Some(process_id as i32);
 
     let mut childs = CHILDS.lock().await;
-    childs.insert(process_id as _, ChildProcess {
-        child,
-        group_id
-    });
+    childs.insert(process_id as _, child);
 
     Ok(process_id)
 }
