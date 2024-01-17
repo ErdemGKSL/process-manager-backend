@@ -102,13 +102,13 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
 
     let mut command = process::Command::new(name);
 
-    let group_id: u16 = random();
+    let group_id: u32 = random();
 
     let mut child =
         command
             .args(args)
             .current_dir(&process.dir)
-            .gid(group_id as u32)
+            .gid(group_id)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::null())
