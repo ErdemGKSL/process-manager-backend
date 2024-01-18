@@ -9,6 +9,7 @@ use serde_json::{json, Value};
 use sqlx::PgPool;
 use sqlx::types::chrono;
 use tokio::process::Command;
+use tokio::time::sleep;
 use crate::library::cache::{ChildProcess, CHILDS, LOGS};
 use crate::library::model::{Process, ProcessOwner, User};
 use crate::State;
@@ -86,7 +87,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut childs = CHILDS.lock().await;
 
-            let child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+            let mut child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
                 println!("Error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
@@ -100,6 +101,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                     .arg(process_ids_command)
                     .output()
                     .await;
+                sleep(std::time::Duration::from_millis(500)).await;
                 if let Ok(process_ids) = process_ids {
                     let process_ids = String::from_utf8_lossy(&process_ids.stdout);
                     let process_ids = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect::<Vec<_>>();
@@ -110,6 +112,8 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                     }
                 }
             });
+
+            let _ = child_process.child.wait().await;
 
             start_process(&mut process, db).await?;
 
