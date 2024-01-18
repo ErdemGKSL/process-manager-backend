@@ -50,7 +50,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut childs = CHILDS.lock().await;
 
-            let mut child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+            let child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
                 println!("Error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
@@ -58,13 +58,21 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child_process.group_id;
                 println!("Killing process with id {:?}", id);
-                let group_ids_command = "ps -G 3678449484 | awk '{ print $1 }'";
-                let group_ids = Command::new("bash")
+                let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
+                let process_ids = Command::new("bash")
                     .arg("-c")
-                    .arg(group_ids_command)
+                    .arg(process_ids_command)
                     .output()
                     .await;
-                println!("Killed process with {group_ids:?}");
+                if let Ok(process_ids) = process_ids {
+                    let process_ids = String::from_utf8_lossy(&process_ids.stdout);
+                    let process_ids = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect::<Vec<_>>();
+                    for id in process_ids {
+                        let _ = Command::new("kill")
+                            .arg(id)
+                            .spawn();
+                    }
+                }
             });
 
             Ok(Json(json!({
@@ -78,7 +86,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut childs = CHILDS.lock().await;
 
-            let mut child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+            let child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
                 println!("Error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
