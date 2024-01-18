@@ -58,9 +58,13 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child_process.group_id;
                 println!("Killing process with id {:?}", id);
-                let _ = Command::new("pkill")
+                let mut e = Command::new("pkill")
                     .args(&["-g", &id.to_string()])
                     .spawn();
+                if let Ok(mut e) = e {
+                    let o = e.wait().await;
+                    println!("Process killed with {o:?}")
+                }
             });
 
             Ok(Json(json!({
