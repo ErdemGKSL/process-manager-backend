@@ -70,7 +70,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             let mut childs = CHILDS.lock().await;
 
-            let mut child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
+            let child_process = childs.remove(&(process.process_id.unwrap() as _)).ok_or(StatusCode::NOT_FOUND).map_err(|e| {
                 println!("Error: {:?}", e);
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
