@@ -1,6 +1,5 @@
 use std::process::Stdio;
-use tokio::process;
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+use tokio::io::{AsyncBufReadExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
 use axum::http::StatusCode;
@@ -104,7 +103,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
     let name = process.cmd.split(' ').next().unwrap();
     let args = process.cmd.split(' ').skip(1).collect::<Vec<_>>();
 
-    let mut command = process::Command::new(name);
+    let mut command = Command::new(name);
 
     let group_id: u32 = random();
 
