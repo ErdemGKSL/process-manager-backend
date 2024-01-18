@@ -90,7 +90,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 pub fn kill_with_group_id(group_id: u32, wait: u64) {
     tokio::spawn(async move {
         println!("Killing process with id {:?}", group_id);
-        let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
+        let process_ids_command = format!("ps -G {group_id} | awk '{{ print $1 }}'");
         let process_ids = Command::new("bash")
             .arg("-c")
             .arg(process_ids_command)
