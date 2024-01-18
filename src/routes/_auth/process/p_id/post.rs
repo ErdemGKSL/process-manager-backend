@@ -111,7 +111,6 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::piped())
-            .uid(id)
             .gid(id)
             .kill_on_drop(true)
             .spawn()
