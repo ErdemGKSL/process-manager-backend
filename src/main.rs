@@ -62,24 +62,20 @@ async fn main() {
     axum::serve(listener, app).await.expect("Failed to start server")
 }
 
-async fn kill_childs(db: &PgPool) {
-    let ids = sqlx::query!("SELECT process_id FROM \"Process\" WHERE process_id IS NOT NULL")
+async fn kill_childs(db: &PgPool) -> Vec<i32> {
+    let ids = sqlx::query!("SELECT id FROM \"Process\" WHERE process_id IS NOT NULL")
         .fetch_all(db)
         .await
         .expect("Failed to get process ids")
         .into_iter()
-        .map(|row| row.process_id.unwrap() as u16)
+        .map(|row| row.id)
         .collect::<Vec<_>>();
 
-    let _ = sqlx::query!("UPDATE \"Process\" SET process_id = NULL WHERE process_id IS NOT NULL RETURNING process_id")
-        .fetch_all(db)
+    let _ = sqlx::query!("UPDATE \"Process\" SET process_id = NULL WHERE process_id IS NOT NULL")
+        .execute(db)
         .await;
 
-    for id in &ids {
-        let _ = std::process::Command::new("kill")
-            .arg(id.to_string())
-            .output();
-    }
+    return ids;
 }
 pub type State = Arc<StateData>;
 pub struct StateData {
