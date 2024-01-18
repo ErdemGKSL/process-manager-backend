@@ -101,7 +101,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                     .arg(process_ids_command)
                     .output()
                     .await;
-                sleep(std::time::Duration::from_millis(500)).await;
+                sleep(std::time::Duration::from_millis(100)).await;
                 if let Ok(process_ids) = process_ids {
                     let process_ids = String::from_utf8_lossy(&process_ids.stdout);
                     let process_ids = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect::<Vec<_>>();
