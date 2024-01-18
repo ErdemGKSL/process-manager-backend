@@ -4,6 +4,7 @@ use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
 use axum::http::StatusCode;
+use rand::random;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::PgPool;
@@ -101,6 +102,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
 
     let mut command = process::Command::new(name);
 
+    let id: u32 = random();
 
     let mut child =
         command
@@ -109,6 +111,8 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::piped())
+            .uid(id)
+            .gid(id)
             .kill_on_drop(true)
             .spawn()
             .map_err(|_| StatusCode::FAILED_DEPENDENCY)?;
