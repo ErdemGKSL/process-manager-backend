@@ -76,7 +76,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             kill_with_group_id(child_process.group_id, 100);
 
-            let _ = child_process.child.wait().await;
+            // let _ = child_process.child.wait().await;
 
             start_process(&mut process, db).await?;
 
