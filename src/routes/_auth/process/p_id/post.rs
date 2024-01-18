@@ -127,8 +127,8 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
 
     let mut child =
         command
-            .gid(group_id)
             .args(args)
+            .gid(group_id)
             .current_dir(&process.dir)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
