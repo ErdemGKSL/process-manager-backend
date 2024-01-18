@@ -87,7 +87,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
     }
 }
 
-pub fn kill_with_group_id(group_id: u32, wait: u16) {
+pub fn kill_with_group_id(group_id: u32, wait: u64) {
     tokio::spawn(async move {
         println!("Killing process with id {:?}", group_id);
         let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
@@ -96,7 +96,7 @@ pub fn kill_with_group_id(group_id: u32, wait: u16) {
             .arg(process_ids_command)
             .output()
             .await;
-        sleep(std::time::Duration::from_millis(100)).await;
+        sleep(std::time::Duration::from_millis(wait)).await;
         if let Ok(process_ids) = process_ids {
             let process_ids = String::from_utf8_lossy(&process_ids.stdout);
             let process_ids: Vec<_> = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect();
