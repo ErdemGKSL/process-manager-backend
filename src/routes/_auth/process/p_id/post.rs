@@ -1,4 +1,5 @@
 use std::process::Stdio;
+use std::time::Duration;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use axum::{Extension, Json};
 use axum::extract::Path;
@@ -78,7 +79,10 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             // let _ = child_process.child.wait().await;
 
-            start_process(&mut process, db).await?;
+            tokio::spawn(async move {
+                sleep(Duration::from_millis(1000)).await;
+                start_process(&mut process, db).await?;
+            });
 
             Ok(Json(json!({
                 "ok": true
@@ -96,7 +100,7 @@ pub fn kill_with_group_id(group_id: u32, wait: u64) {
             .arg(process_ids_command)
             .output()
             .await;
-        sleep(std::time::Duration::from_millis(wait)).await;
+        sleep(Duration::from_millis(wait)).await;
         if let Ok(process_ids) = process_ids {
             let process_ids = String::from_utf8_lossy(&process_ids.stdout);
             let process_ids: Vec<_> = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect();
