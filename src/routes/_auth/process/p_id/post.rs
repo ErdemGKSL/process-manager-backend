@@ -81,7 +81,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
 
             tokio::spawn(async move {
                 sleep(Duration::from_millis(1000)).await;
-                start_process(&mut process, db).await?;
+                let _ = start_process(&mut process, db).await;
             });
 
             Ok(Json(json!({
