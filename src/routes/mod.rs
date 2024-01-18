@@ -1,4 +1,4 @@
-mod _auth;
+pub mod _auth;
 mod auth;
 mod get;
 

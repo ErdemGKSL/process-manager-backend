@@ -8,6 +8,7 @@ use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 use tower_cookies::CookieManagerLayer;
 use tower_http::cors::CorsLayer;
+use crate::routes::_auth::process::p_id::post::{kill_with_group_id, start_process};
 
 #[tokio::main]
 async fn main() {
@@ -75,6 +76,12 @@ async fn kill_childs(db: &PgPool) -> Vec<i32> {
         .execute(db)
         .await;
 
+    let mut childs = library::cache::CHILDS.lock().await;
+    for id in ids.iter() {
+        if let Some(child) = childs.remove(&(*id as _)) {
+            kill_with_group_id(child.group_id, 0);
+        }
+    }
     return ids;
 }
 pub type State = Arc<StateData>;

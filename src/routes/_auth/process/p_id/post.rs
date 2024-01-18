@@ -56,25 +56,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
 
-            tokio::spawn(async move {
-                let id = child_process.group_id;
-                println!("Killing process with id {:?}", id);
-                let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
-                let process_ids = Command::new("bash")
-                    .arg("-c")
-                    .arg(process_ids_command)
-                    .output()
-                    .await;
-                if let Ok(process_ids) = process_ids {
-                    let process_ids = String::from_utf8_lossy(&process_ids.stdout);
-                    let process_ids = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect::<Vec<_>>();
-                    for id in process_ids {
-                        let _ = Command::new("kill")
-                            .arg(id)
-                            .spawn();
-                    }
-                }
-            });
+            kill_with_group_id(child_process.group_id, 100).await;
 
             Ok(Json(json!({
                 "ok": true
@@ -92,26 +74,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
 
-            tokio::spawn(async move {
-                let id = child_process.group_id;
-                println!("Killing process with id {:?}", id);
-                let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
-                let process_ids = Command::new("bash")
-                    .arg("-c")
-                    .arg(process_ids_command)
-                    .output()
-                    .await;
-                sleep(std::time::Duration::from_millis(100)).await;
-                if let Ok(process_ids) = process_ids {
-                    let process_ids = String::from_utf8_lossy(&process_ids.stdout);
-                    let process_ids = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect::<Vec<_>>();
-                    for id in process_ids {
-                        let _ = Command::new("kill")
-                            .arg(id)
-                            .spawn();
-                    }
-                }
-            });
+            kill_with_group_id(child_process.group_id, 100).await;
 
             let _ = child_process.child.wait().await;
 
@@ -122,6 +85,28 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             })))
         }
     }
+}
+
+pub fn kill_with_group_id(group_id: u32, wait: u16) {
+    tokio::spawn(async move {
+        println!("Killing process with id {:?}", group_id);
+        let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
+        let process_ids = Command::new("bash")
+            .arg("-c")
+            .arg(process_ids_command)
+            .output()
+            .await;
+        sleep(std::time::Duration::from_millis(100)).await;
+        if let Ok(process_ids) = process_ids {
+            let process_ids = String::from_utf8_lossy(&process_ids.stdout);
+            let process_ids: Vec<_> = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect();
+            for id in process_ids {
+                let _ = Command::new("kill")
+                    .arg(id)
+                    .spawn();
+            }
+        }
+    });
 }
 
 pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, StatusCode> {

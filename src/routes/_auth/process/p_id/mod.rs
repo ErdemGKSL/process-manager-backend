@@ -5,7 +5,7 @@ mod patch;
 mod get;
 mod delete;
 mod logs;
-mod post;
+pub mod post;
 mod users;
 mod git;
 

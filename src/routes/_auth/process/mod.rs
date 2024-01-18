@@ -1,6 +1,6 @@
-mod put;
-mod p_id;
-mod get;
+pub mod put;
+pub mod p_id;
+pub mod get;
 
 use axum::Router;
 use axum::routing::{get, put};
