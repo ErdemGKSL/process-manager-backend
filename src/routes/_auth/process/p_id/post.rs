@@ -115,7 +115,10 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .gid(id)
             .kill_on_drop(true)
             .spawn()
-            .map_err(|_| StatusCode::FAILED_DEPENDENCY)?;
+            .map_err(|e| {
+                println!("Error: {e:?}");
+                StatusCode::FAILED_DEPENDENCY
+            })?;
 
     let stdout = child.stdout.take().unwrap();
     let stderr = child.stderr.take().unwrap();
