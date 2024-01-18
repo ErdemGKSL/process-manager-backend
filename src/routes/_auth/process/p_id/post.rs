@@ -94,9 +94,21 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
             tokio::spawn(async move {
                 let id = child_process.group_id;
                 println!("Killing process with id {:?}", id);
-                let _ = Command::new("pkill")
-                    .args(&["-g", &id.to_string()])
-                    .spawn();
+                let process_ids_command = format!("ps -G {id} | awk '{{ print $1 }}'");
+                let process_ids = Command::new("bash")
+                    .arg("-c")
+                    .arg(process_ids_command)
+                    .output()
+                    .await;
+                if let Ok(process_ids) = process_ids {
+                    let process_ids = String::from_utf8_lossy(&process_ids.stdout);
+                    let process_ids = process_ids.split('\n').skip(1).filter(|id| !id.is_empty()).collect::<Vec<_>>();
+                    for id in process_ids {
+                        let _ = Command::new("kill")
+                            .arg(id)
+                            .spawn();
+                    }
+                }
             });
 
             start_process(&mut process, db).await?;
