@@ -76,8 +76,8 @@ async fn kill_childs(db: &PgPool) -> Vec<i32> {
         .execute(db)
         .await;
 
-    let mut childs = library::cache::CHILDS.lock().await;
     for id in ids.iter() {
+        let mut childs = library::cache::CHILDS.lock().await;
         if let Some(child) = childs.remove(&(*id as _)) {
             kill_with_group_id(child.group_id, 0);
         }
