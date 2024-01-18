@@ -74,7 +74,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 StatusCode::INTERNAL_SERVER_ERROR
             })?;
 
-            kill_with_group_id(child_process.group_id, 100).await;
+            kill_with_group_id(child_process.group_id, 100);
 
             let _ = child_process.child.wait().await;
 
