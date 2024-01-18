@@ -8,7 +8,7 @@ use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
 use tower_cookies::CookieManagerLayer;
 use tower_http::cors::CorsLayer;
-use crate::routes::_auth::process::p_id::post::{kill_with_group_id, start_process};
+use crate::routes::_auth::process::p_id::post::kill_with_group_id;
 
 #[tokio::main]
 async fn main() {
