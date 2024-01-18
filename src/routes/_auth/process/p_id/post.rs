@@ -106,12 +106,12 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
 
     let mut child =
         command
+            .gid(id)
             .args(args)
             .current_dir(&process.dir)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .stdin(Stdio::piped())
-            .gid(id)
             .kill_on_drop(true)
             .spawn()
             .map_err(|e| {
