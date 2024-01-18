@@ -132,7 +132,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .current_dir(&process.dir)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
-            .stdin(Stdio::piped())
+            .stdin(Stdio::null())
             .kill_on_drop(true)
             .spawn()
             .map_err(|e| {
