@@ -1,0 +1,1 @@
+cargo build -r && ./target/release/process-manager-backend
