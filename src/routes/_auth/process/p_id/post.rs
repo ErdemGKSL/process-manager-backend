@@ -60,8 +60,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 println!("Killing process with id {:?}", id);
                 let _ = Command::new("pkill")
                     .args(&["-g", &id.to_string()])
-                    .spawn()
-                    .await;
+                    .spawn();
             });
 
             Ok(Json(json!({
@@ -85,8 +84,7 @@ pub async fn trigger(Extension(state): Extension<State>, Extension(auth_user): E
                 println!("Killing process with id {:?}", id);
                 let _ = Command::new("pkill")
                     .args(&["-g", &id.to_string()])
-                    .spawn()
-                    .await;
+                    .spawn();
             });
 
             start_process(&mut process, db).await?;
