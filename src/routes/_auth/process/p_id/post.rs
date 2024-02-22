@@ -136,6 +136,7 @@ pub async fn start_process(process: &mut Process, db: &PgPool) -> Result<u32, St
             .kill_on_drop(true)
             .spawn()
             .map_err(|e| {
+                println!("{} | {}", process.dir, name);
                 println!("Error: {e:?}");
                 StatusCode::FAILED_DEPENDENCY
             })?;
