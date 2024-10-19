@@ -37,7 +37,7 @@ impl ToJson for Process {
             "process_id": self.process_id,
             "dir": self.dir,
             "cmd": self.cmd,
-            "until": self.until.map(|u| u.timestamp_millis()),
+            "until": self.until.map(|u| u.and_utc().timestamp_millis()),
         })
     }
 }
