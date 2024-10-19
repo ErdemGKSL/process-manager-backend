@@ -1,5 +1,6 @@
 use serde_json::{json, Value};
 use sqlx::types::chrono::NaiveDateTime;
+use serde::Serialize;
 
 #[derive(Clone)]
 pub struct User {
@@ -10,7 +11,7 @@ pub struct User {
     pub admin: bool,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize)]
 pub struct Process {
     pub id: i32,
     pub name: String,
