@@ -1,6 +1,5 @@
 use crate::library::cache::LOGS;
 use crate::library::model::{Process, User};
-use crate::routes::_auth::process::p_id::post::stop_process;
 use crate::State;
 use axum::extract::Path as APath;
 use axum::http::StatusCode;
@@ -119,7 +118,6 @@ pub async fn execute_git_command(
                     }
                 }
             }
-            let _ = stop_process(&process, &db).await;
             println!(
                 "Process stopped with id {process_id} and name {}",
                 process.name
