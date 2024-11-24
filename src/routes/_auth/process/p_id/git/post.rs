@@ -7,7 +7,6 @@ use axum::{Extension, Json};
 use serde::Deserialize;
 use serde_json::{json, Value};
 use sqlx::types::chrono;
-use sqlx::PgPool;
 use std::path::Path;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -39,14 +38,14 @@ pub async fn trigger(
 
     match body.action {
         RequestAction::Status => {
-            let _ = execute_git_command(&mut process, db, "status".to_owned()).await?;
+            let _ = execute_git_command(&mut process, "status".to_owned()).await?;
 
             Ok(Json(json!({
                 "ok": true
             })))
         }
         RequestAction::Pull => {
-            let _ = execute_git_command(&mut process, db, "pull".to_owned()).await?;
+            let _ = execute_git_command(&mut process, "pull".to_owned()).await?;
 
             Ok(Json(json!({
                 "ok": true
@@ -57,7 +56,6 @@ pub async fn trigger(
 
 pub async fn execute_git_command(
     process: &mut Process,
-    db: &PgPool,
     command: String,
 ) -> Result<u32, StatusCode> {
     let name = std::env::var("GIT_PATH").unwrap_or("git".to_string());
@@ -97,7 +95,6 @@ pub async fn execute_git_command(
 
     {
         let process = process.clone();
-        let db = db.clone();
         tokio::spawn(async move {
             let mut lines = stdout.lines();
             while let Ok(Some(line)) = lines.next_line().await {
