@@ -59,6 +59,9 @@ async fn main() {
         .await
         .expect("Failed to bind to port");
 
+    let app = axum::Router::new()
+        .nest("/api", app);
+
     println!("Listening on port {}", port);
     axum::serve(listener, app).await.expect("Failed to start server")
 }
